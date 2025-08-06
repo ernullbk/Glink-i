@@ -1,58 +1,54 @@
-# نام ورک‌فلو که در صفحه Actions گیت‌هاب نمایش داده می‌شود
+# نام ورک‌فلو
 name: Build Cordova Android App
 
-# تعریف رویدادهایی که این ورک‌فلو را فعال می‌کنند
 on:
   push:
     branches:
-      - main # فقط زمانی که به شاخه main پوش می‌شود
+      - main
 
 jobs:
   build:
-    # استفاده از آخرین نسخه اوبونتو به عنوان محیط اجرایی
     runs-on: ubuntu-latest
 
     steps:
-      # مرحله ۱: دریافت کد از ریپازیتوری
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # مرحله ۲: نصب Node.js برای استفاده از npm و cordova
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # می‌توانید نسخه مورد نظر خود را انتخاب کنید
+          node-version: '20'
 
-      # مرحله ۳: نصب جاوا (JDK) با نسخه ۱۷
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin' # یک توزیع محبوب از OpenJDK
+          distribution: 'temurin'
 
-      # مرحله ۴: نصب Cordova CLI به صورت سراسری
       - name: Install Cordova CLI
         run: npm install -g cordova
 
-      # مرحله ۵: نصب نیازمندی‌های پروژه (از فایل package.json)
       - name: Install Project Dependencies
         run: npm install
 
-      # مرحله ۶: افزودن پلتفرم اندروید به پروژه کوردوا
       - name: Add Android Platform
         run: cordova platform add android
 
-      # مرحله ۷: بیلد کردن اپلیکیشن اندروید در حالت release
-      # برای بیلد release نیاز به تنظیمات signing دارید. در اینجا یک بیلد debug می‌سازیم که ساده‌تر است.
+      # --- مرحله جدید برای رفع خطا ---
+      # این مرحله را اینجا اضافه کنید
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          # نسخه‌های مورد نیاز پروژه شما
+          build-tools: "33.0.2"
+          platform: "android-33"
+          cmdline-tools: "latest"
+
       - name: Build Android App (Debug)
         run: cordova build android
 
-      # مرحله ۸: آپلود فایل APK خروجی به عنوان آرتیفکت
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          # نام آرتیفکتی که در گیت‌هاب نمایش داده می‌شود
           name: android-apk
-          # مسیر فایل APK که باید آپلود شود
-          # مسیر پیش‌فرض برای بیلد debug در کوردوا همین است
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
