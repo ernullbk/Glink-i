@@ -1,0 +1,27 @@
+{
+  "name": "ir.hrlink.app",
+  "displayName": "HRLink",
+  "version": "5.0.0",
+  "description": "Snappfood Token Handler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "HRDev",
+  "license": "Apache-2.0",
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {
+      "cordova-plugin-advanced-http": {}
+    }
+  },
+  "dependencies": {
+    "cordova-android": "^12.0.1",
+    "cordova-plugin-advanced-http": "^3.3.1"
+  }
+}
