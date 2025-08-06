@@ -8,45 +8,56 @@ on:
 
 jobs:
   build:
+    # استفاده از آخرین نسخه اوبونتو
     runs-on: ubuntu-latest
 
     steps:
+      # مرحله ۱: دریافت کد از ریپازیتوری
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # مرحله ۲: نصب Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      # مرحله ۳: نصب جاوا (JDK) با نسخه ۱۷
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Cordova CLI
-        run: npm install -g cordova
+      # مرحله ۴: نصب نیازمندی‌های پروژه
+      - name: Install Dependencies
+        run: |
+          npm install -g cordova
+          npm install
 
-      - name: Install Project Dependencies
-        run: npm install
-
+      # مرحله ۵: افزودن پلتفرم اندروید
       - name: Add Android Platform
-        run: cordova platform add android
+        run: cordova platform add android@latest
 
-      # --- مرحله جدید برای رفع خطا ---
-      # این مرحله را اینجا اضافه کنید
+      # مرحله ۶: نصب SDK اندروید (بسیار مهم)
+      # این مرحله ابزارهای مورد نیاز Gradle را نصب می‌کند
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # نسخه‌های مورد نیاز پروژه شما
-          build-tools: "33.0.2"
-          platform: "android-33"
+          build-tools: "34.0.0" # استفاده از نسخه جدیدتر و پایدارتر
+          platform: "android-34"
           cmdline-tools: "latest"
 
+      # مرحله ۷: اعطای دسترسی اجرایی به Gradle (مرحله کلیدی جدید)
+      # این دستور به اسکریپت بیلد اجازه اجرا می‌دهد
+      - name: Grant Execute Permission to gradlew
+        run: chmod +x platforms/android/gradlew
+
+      # مرحله ۸: ساخت اپلیکیشن اندروید
       - name: Build Android App (Debug)
         run: cordova build android
 
+      # مرحله ۹: آپلود فایل APK خروجی
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
