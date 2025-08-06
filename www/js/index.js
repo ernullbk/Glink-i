@@ -25,6 +25,7 @@ function onDeviceReady() {
         processBtn.innerText = isLoading ? 'در حال پردازش...' : 'ارسال';
     }
 
+    // تابع اصلی بدون تغییر باقی می‌ماند
     async function processLink(apiUrl) {
         setButtonState(true);
         updateStatus('در حال دریافت اطلاعات از لینک...');
@@ -38,37 +39,16 @@ function onDeviceReady() {
             }
             
             const jwtData = JSON.parse(data.JWT);
-
             updateStatus('اطلاعات دریافت شد، در حال تنظیم کوکی‌ها...');
             
-            // تابع کمکی که setCookie را به یک Promise تبدیل می‌کند
-            function setCookieAsync(name, value) {
-                return new Promise((resolve, reject) => {
-                    const cookieString = `${name}=${value}; path=/;`;
-                    // فراخوانی صحیح تابع با ارسال دو callback برای موفقیت و شکست
-                    cordova.plugin.http.setCookie(targetUrl, cookieString, resolve, reject);
-                });
-            }
-
-            // استفاده از تابع کمکی برای تنظیم تمام کوکی‌ها
-            await Promise.all([
-                setCookieAsync('jwt-access_token', jwtData.access_token),
-                setCookieAsync('jwt-token_type', jwtData.token_type),
-                setCookieAsync('jwt-refresh_token', jwtData.refresh_token),
-                setCookieAsync('jwt-expires_in', String(jwtData.expires_in)), // تبدیل به رشته برای اطمینان
-                setCookieAsync('UserMembership', '0')
-            ]);
-            
-            updateStatus('انجام شد! در حال انتقال به اسنپ‌فود...');
-            
-            window.location.href = targetUrl;
+            // فراخوانی تابع جدید برای تنظیم کوکی‌ها به صورت ترتیبی
+            setCookiesSequentially(jwtData);
 
         } catch (error) {
             console.error(JSON.stringify(error));
             let detailedErrorMessage = 'خطای ناشناخته. لطفا دوباره تلاش کنید.';
-
             if (error && error.status) {
-                detailedErrorMessage = `خطا در اتصال به سرور (کد: ${error.status}). لینک ممکن است نامعتبر باشد.`;
+                detailedErrorMessage = `خطا در اتصال به سرور (کد: ${error.status}).`;
             } else if (error && error.message) {
                 detailedErrorMessage = `خطا در پردازش: ${error.message}`;
             }
@@ -76,4 +56,49 @@ function onDeviceReady() {
             setButtonState(false);
         }
     }
+
+    // ================== بخش کاملاً جدید و اصلاح شده ==================
+    // این تابع کوکی‌ها را یک به یک و به صورت تو در تو تنظیم می‌کند
+    function setCookiesSequentially(jwtData) {
+        const cookies = [
+            { name: 'jwt-access_token', value: jwtData.access_token },
+            { name: 'jwt-token_type', value: jwtData.token_type },
+            { name: 'jwt-refresh_token', value: jwtData.refresh_token },
+            { name: 'jwt-expires_in', String(jwtData.expires_in) },
+            { name: 'UserMembership', value: '0' }
+        ];
+
+        let index = 0;
+
+        function setNextCookie() {
+            // اگر تمام کوکی‌ها تنظیم شده باشند، به سایت منتقل شو
+            if (index >= cookies.length) {
+                updateStatus('انجام شد! در حال انتقال به اسنپ‌فود...');
+                window.location.href = targetUrl;
+                return;
+            }
+
+            const cookie = cookies[index];
+            const cookieString = `${cookie.name}=${cookie.value}; path=/;`;
+            
+            const onSuccess = () => {
+                console.log(`Cookie '${cookie.name}' set successfully.`);
+                index++;
+                setNextCookie(); // کوکی بعدی را تنظیم کن
+            };
+
+            const onFailure = (error) => {
+                console.error(`Failed to set cookie '${cookie.name}':`, JSON.stringify(error));
+                updateStatus(`خطا در تنظیم کوکی: ${cookie.name}`, true);
+                setButtonState(false);
+            };
+            
+            // فراخوانی صحیح تابع با ارسال دو callback برای موفقیت و شکست
+            cordova.plugin.http.setCookie(targetUrl, cookieString, onSuccess, onFailure);
+        }
+
+        // شروع فرآیند تنظیم اولین کوکی
+        setNextCookie();
+    }
+    // ===============================================================
 }
