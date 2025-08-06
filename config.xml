@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="ir.hrlink.app" version="5.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>HRLink</name>
-    <description>Snappfood Token Handler</description>
+<widget id="com.example.snappfoodauth" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>SnappfoodAuth</name>
+    <description>Application to authenticate with Snappfood.</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
         Apache Cordova Team
     </author>
@@ -11,5 +11,9 @@
     <access origin="*" />
     <platform name="android">
         <allow-intent href="market:*" />
+    </platform>
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
     </platform>
 </widget>
