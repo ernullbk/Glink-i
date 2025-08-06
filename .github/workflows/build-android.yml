@@ -16,48 +16,51 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # مرحله ۲: نصب Node.js
+      # مرحله ۲: آماده‌سازی محیط - نصب Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # مرحله ۳: نصب جاوا (JDK) با نسخه ۱۷
+      # مرحله ۳: آماده‌سازی محیط - نصب Java JDK 17
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # مرحله ۴: نصب نیازمندی‌های پروژه
-      - name: Install Dependencies
+      # مرحله ۴: آماده‌سازی محیط - نصب Android SDK (بسیار مهم)
+      # این مرحله باید قبل از اجرای هر دستور کوردوا اجرا شود
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          build-tools: "34.0.0"
+          platform: "android-34"
+          cmdline-tools: "latest"
+
+      # مرحله ۵: نصب ابزارهای پروژه
+      - name: Install Cordova and Dependencies
         run: |
           npm install -g cordova
           npm install
 
-      # مرحله ۵: افزودن پلتفرم اندروید
+      # مرحله ۶: افزودن پلتفرم اندروید
       - name: Add Android Platform
         run: cordova platform add android@latest
 
-      # مرحله ۶: نصب SDK اندروید (بسیار مهم)
-      # این مرحله ابزارهای مورد نیاز Gradle را نصب می‌کند
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          build-tools: "34.0.0" # استفاده از نسخه جدیدتر و پایدارتر
-          platform: "android-34"
-          cmdline-tools: "latest"
+      # مرحله ۷ (اختیاری ولی مفید): نمایش فایل‌های ساخته شده برای دیباگ
+      - name: List files in platforms directory
+        run: ls -R platforms
 
-      # مرحله ۷: اعطای دسترسی اجرایی به Gradle (مرحله کلیدی جدید)
-      # این دستور به اسکریپت بیلد اجازه اجرا می‌دهد
+      # مرحله ۸: اعطای دسترسی اجرایی به Gradle
       - name: Grant Execute Permission to gradlew
         run: chmod +x platforms/android/gradlew
 
-      # مرحله ۸: ساخت اپلیکیشن اندروید
+      # مرحله ۹: ساخت اپلیکیشن اندروید
       - name: Build Android App (Debug)
         run: cordova build android
 
-      # مرحله ۹: آپلود فایل APK خروجی
+      # مرحله ۱۰: آپلود فایل APK خروجی
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
